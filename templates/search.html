@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>News Search</title>
+    
+        <style>
+
+   html, body {
+            font-family: 'Montserrat Alternates', sans-serif;
+            color: #301d32;
+            width: 100%;
+            max-width: 100%;
+            height: 100%;
+            padding: 0;
+            margin: 0;
+            background-color: rgba(154, 57, 163, 1);
+            background: -moz-linear-gradient(-45deg, rgba(154, 57, 163, 1) 0%, rgba(65, 103, 168, 1) 100%);
+            background: -webkit-gradient(left top, right bottom, color-stop(0%, rgba(154, 57, 163, 1)), color-stop(100%, rgba(65, 103, 168, 1)));
+            background: -webkit-linear-gradient(-45deg, rgba(154, 57, 163, 1) 0%, rgba(65, 103, 168, 1) 100%);
+            background: -o-linear-gradient(-45deg, rgba(154, 57, 163, 1) 0%, rgba(65, 103, 168, 1) 100%);
+            background: -ms-linear-gradient(-45deg, rgba(154, 57, 163, 1) 0%, rgba(65, 103, 168, 1) 100%);
+            background: linear-gradient(135deg, rgba(154, 57, 163, 1) 0%, rgba(65, 103, 168, 1) 100%);
+            filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#9a39a3', endColorstr='#4167a8', GradientType=1);
+        }
+            h1 {
+                text-align: center;
+                color: #FFFFFF;
+                margin-top: 40px;
+            }
+    
+            #search-container {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                height: 40vh;
+            }
+    
+            #search-form {
+                max-width: 400px;
+                padding: 20px;
+                border: 1px solid #ccc;
+                border-radius: 5px;
+                box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+                background-color: #fff;
+            }
+    
+            label {
+                display: block;
+                margin-bottom: 8px;
+                color: #333;
+            }
+    
+            input {
+                width: 100%;
+                padding: 8px;
+                margin-bottom: 16px;
+                box-sizing: border-box;
+            }
+    
+            #button {
+                background-color: #876aac;
+                color: white;
+                width: 100%;
+                padding: 10px;
+                border: none;
+                border-radius: 5px;
+                cursor: pointer;
+            }
+    
+            #button:hover {
+                background-color: #8e51bc;
+            }
+    
+            #results {
+                margin-top: 20px;
+                max-width: 600px;
+                margin-left: auto;
+                margin-right: auto;
+            }
+    
+            .title {
+                cursor: pointer;
+                background-color: #f0e1f1f5;;
+                padding: 10px;
+                margin-bottom: 5px;
+                border-radius: 5px;
+                transition: background-color 0.3s;
+            }
+    
+            .title:hover {
+                background-color: #e0e0e0;
+            }
+    
+            .contents {
+                margin-top: 10px;
+                padding: 10px;
+                background-color: #f0e1f1f5;;
+                border: 1px solid #ddd;
+                border-radius: 5px;
+            }
+            .partial-content{
+                margin-top: 1px;
+                padding: 10px;
+                background-color: #f0e1f1f5;;
+                border: 1px solid #ddd;
+                border-radius: 5px;
+            }
+            .date{
+                margin-top: 10px;
+                padding: 1px;
+                background-color: #f0e1f1f5;;
+                border: 1px solid #ddd;
+                border-radius: 5px;
+            }
+        </style>
+    </head>
+    <body>
+        <h1>News Search</h1>
+        
+        <div id="search-container">
+            <div id="search-form">
+                <label for="query">Query:</label>
+                <input type="text" id="query" name="query" required>
+        
+                <label for="temporal_expression">Temporal Expression:</label>
+                <input type="text" id="temporal_expression" name="temporal_expression">
+        
+                <label for="georeference">Georeference:</label>
+                <input type="text" id="georeference" name="georeference">
+        
+                <button id="button" type="button" onclick="search()">Search</button>
+            </div>
+        </div>
+    
+        <div id="results"></div>
+        <script>
+            function search() {
+                const query = document.getElementById('query').value;
+                const temporalExpression = document.getElementById('temporal_expression').value;
+                const georeference = document.getElementById('georeference').value;
+        
+                fetch('/search', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ query, temporal_expression: temporalExpression, georeference }),
+                })
+                .then(response => response.json())
+                .then(data => {
+                    displayResults(data);
+                });
+            }
+        
+            function displayResults(results) {
+                const resultsContainer = document.getElementById('results');
+                resultsContainer.innerHTML = '';
+        
+                results.forEach(result => {
+                    const resultDiv = document.createElement('div');
+        
+                    // Title
+                    const titleDiv = document.createElement('div');
+                    titleDiv.textContent = result.title;  // Assuming 'title' is the field in your result
+                    titleDiv.className = 'title';
+                    titleDiv.addEventListener('click', () => toggleContents(result, resultDiv));
+                    resultDiv.appendChild(titleDiv);
+        
+                    resultsContainer.appendChild(resultDiv);
+                });
+            }
+        
+            function toggleContents(result, resultDiv) {
+                // Check if the contents are currently visible
+                const contentsVisible = resultDiv.querySelector('.contents') !== null;
+        
+                // If contents are visible, remove them
+                if (contentsVisible) {
+                    resultDiv.removeChild(resultDiv.querySelector('.date'));
+                    resultDiv.removeChild(resultDiv.querySelector('.contents-button'));
+                    resultDiv.removeChild(resultDiv.querySelector('.contents'));
+                    resultDiv.removeChild(resultDiv.querySelector('.partial-content'));
+                } else {
+                    // Date
+                    const dateDiv = document.createElement('div');
+                    dateDiv.textContent = result.date;  // Assuming 'date' is the field in your result
+                    dateDiv.className = 'date';
+        
+                    // Partial Content (3-4 rows)
+                    const partialContentDiv = document.createElement('div');
+                    const partialContentText = result.content.substring(0, 150); // Display the first 150 characters, adjust as needed
+                    partialContentDiv.textContent = partialContentText;
+                    partialContentDiv.className = 'partial-content';
+        
+                    // Content
+                    const contentDiv = document.createElement('div');
+                    contentDiv.textContent = result.content; // Assuming 'content' is the field in your result
+                    contentDiv.className = 'contents';
+                    contentDiv.style.display = 'none';  // Initially hide full content
+        
+                    // Show More/Less Button
+                    const contentsButton = document.createElement('button');
+                    contentsButton.textContent = 'Show More';
+                    contentsButton.className = 'contents-button';
+                    contentsButton.addEventListener('click', () => toggleFullContent(partialContentDiv, contentDiv, contentsButton));
+        
+                    // Append date, partial content, and button to the resultDiv
+                    resultDiv.appendChild(dateDiv);
+                    resultDiv.appendChild(partialContentDiv);
+                    resultDiv.appendChild(contentsButton);
+                    resultDiv.appendChild(contentDiv);
+                }
+            }
+        
+            function toggleFullContent(partialContentDiv, contentDiv, contentsButton) {
+                const isPartialContentVisible = partialContentDiv.style.display !== 'none';
+        
+                if (isPartialContentVisible) {
+                    // Hide partial content, show full content
+                    partialContentDiv.style.display = 'none';
+                    contentDiv.style.display = 'block';
+                    contentsButton.textContent = 'Show Less';
+                } else {
+                    // Show partial content, hide full content
+                    partialContentDiv.style.display = 'block';
+                    contentDiv.style.display = 'none';
+                    contentsButton.textContent = 'Show More';
+                }
+            }
+        </script>
+        
+</body>
+</html>

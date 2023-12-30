@@ -1,1 +1,0 @@
-# Smart-Document-Retrieval-System
