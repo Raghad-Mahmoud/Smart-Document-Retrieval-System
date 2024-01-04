@@ -17,6 +17,7 @@ def autocomplete_query(index_name, user_input, size=10):
             "match": {
                 "title": {
                     "query": user_input,
+                    "analyzer": "autocomplete",
                     "fuzziness": "AUTO"
                 }
             }
